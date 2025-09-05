@@ -1,4 +1,5 @@
-.azure-devops
+.git
+.github
 .prettierrc
 Dockerfile
 README.md
