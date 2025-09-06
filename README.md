@@ -18,6 +18,14 @@ Many thanks to the LibreChat team for providing a solid foundation! :heart:
 - Fully automated via GitHub Actions workflows.
 - Serves as a reusable base for further customizations.
 
+## Default Configuration
+
+This repository includes a default [librechat.yaml](librechat.yaml) configuration that adds support for an Azure OpenAI endpoint.
+The endpoint parameters are provided through the environment variables:
+
+- `AZURE_OPENAI_INSTANCE_NAME`
+- `AZURE_OPENAI_API_KEY`
+
 ## Development
 
 This project extends the official LibreChat container image. There is no separate app codebase; development focuses on customizing the container and deployment.

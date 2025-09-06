@@ -1,3 +1,26 @@
 # LibreChat configuration version (required)
 # https://www.librechat.ai/docs/configuration/librechat_yaml
 version: 1.2.1
+
+endpoints:
+  # Azure OpenAI Endpoint
+  # https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/azure_openai
+  azureOpenAI:
+
+    # Specifies the model to use for generating conversation titles.
+    titleConvo: true
+    titleModel: gpt-5-mini
+
+    # Specifies the list of Azure OpenAI model groups.
+    # Each group represents a set of models with shared configurations.
+    groups:
+      - group: default
+        instanceName: ${AZURE_OPENAI_INSTANCE_NAME}
+        apiKey: ${AZURE_OPENAI_API_KEY}
+        version: "2024-10-21"
+
+        models:
+          gpt-5:
+            deploymentName: gpt-5
+          gpt-5-mini:
+            deploymentName: gpt-5-mini
