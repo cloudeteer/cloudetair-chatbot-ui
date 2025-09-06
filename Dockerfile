@@ -1,37 +1,41 @@
-# Start from the official LibreChat image (prebuilt)
+# syntax=docker.io/docker/dockerfile:1.7-labs
+# Enables --exclude in COPY for better caching of layers
+
+# Use the official LibreChat base image
 FROM ghcr.io/danny-avila/librechat:v0.7.9
-
-# Switch to app directory and copy customizations
-# -> overwrites existing files (JS, CSS, images, etc.)
 WORKDIR /app
-COPY --chown=node:node . .
 
-# Temporarily switch to root to install the entrypoint script
-USER root
-RUN \
-  mv entrypoint.sh / && \
-  chown root:root /entrypoint.sh && \
-  chmod 755 /entrypoint.sh
+# Project currently does not define its own package.json
+# COPY --chown=node:node package*.json .
 
-# Set the entrypoint for the container
+# Reinstall dependencies to ensure a clean build
+RUN npm config set fetch-retry-maxtimeout 600000 \
+  && npm config set fetch-retries 5 \
+  && npm config set fetch-retry-mintimeout 15000 \
+  && npm install --no-audit
+
+# Copy custom files
+# Exclude entrypoint.sh and librechat.yaml for separate handling
+# Overwrites upstream assets (CSS, JS, images, etc.)
+COPY --chown=node:node \
+  --exclude=entrypoint.sh \
+  --exclude=librechat.yaml \
+  . .
+
+# Rebuild frontend to apply overrides (CSS/JS/images)
+# Prune devDependencies and clean npm cache to reduce image size
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run frontend \
+  && npm prune --production \
+  && npm cache clean --force
+
+# Copy entrypoint script with root permissions (separate layer for caching)
+COPY --chown=root:root --chmod=755 entrypoint.sh /entrypoint.sh
+
+# Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Redefine the default command from the upstream Dockerfile
+# Set default command (ENTRYPOINT overrides base image CMD)
 CMD ["npm", "run", "backend"]
 
-# Revert back to the non-root node user for safety
-USER node
-
-# Reinstall dependencies to ensure a clean rebuild
-RUN \
-  npm config set fetch-retry-maxtimeout 600000 && \
-  npm config set fetch-retries 5 && \
-  npm config set fetch-retry-mintimeout 15000 && \
-  npm install --no-audit
-
-# Rebuild the frontend with custom overrides
-# -> applies new JS, CSS, images, etc.
-RUN \
-  NODE_OPTIONS="--max-old-space-size=2048" npm run frontend && \
-  npm prune --production && \
-  npm cache clean --force
+# Copy configuration file last to avoid rebuilding earlier layers on minor changes
+COPY --chown=node:node librechat.yaml .
