@@ -2,7 +2,7 @@
 # Enables --exclude in COPY for better caching of layers
 
 # Use the official LibreChat base image
-FROM ghcr.io/danny-avila/librechat:v0.7.9
+FROM ghcr.io/danny-avila/librechat:v0.8.1
 WORKDIR /app
 
 # Project currently does not define its own package.json
